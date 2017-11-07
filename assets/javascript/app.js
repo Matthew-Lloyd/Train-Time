@@ -17,7 +17,7 @@
 
 		var name = $("#train-name").val().trim();
 		var destination = $("#train-destination").val().trim();
-		var startTime = $("#train-startTime").val().trim();
+		var startTime = moment($("#train-startTime").val().trim(), "HH:mm").format("");
 		var frequency = $("#train-frequency").val().trim();
 
 		console.log(name, destination, startTime, frequency);
@@ -30,7 +30,7 @@
 		database.ref().push({
 			name: name,
 			destination: destination, 
-			startTime: moment(startTime).format("x"),
+			startTime: startTime,
 			frequency: frequency
 		});
 	};
@@ -46,19 +46,25 @@
 		for(var key in data) {
 			var name = data[key].name;
 			var destination = data[key].destination;
-			var startTime = parseInt(data[key].startTime);
+			var startTime = data[key].startTime;
 			var frequency = data[key].frequency;
+			var timeSubtract = moment(startTime, "HH:mm").subtract(1, "years");
+			var timeSwap = moment().diff(moment(timeSubtract), "minutes");
+			var timeDifference = timeSwap % frequency;
+			var minutesAway = frequency - timeDifference;
+			var nextArrival = moment().add(minutesAway, "minutes");
+			var nextTrainFormatted = moment(nextArrival).format("hh:mm a");
 
 			var tRow = $("<tr>");
 
 			var tD1 = $("<td>").text(name);
 			var tD2 = $("<td>").text(destination);
-			var tD3 = $("<td>").text(moment(startTime).format("x"));
+			var tD5 = $("<td>").text(moment(startTime).format("hh:mm a"));
 			var tD4 = $("<td>").text(frequency);
-			// var tD5 = $("<td>").text(nextArrival); //Next train arrival
-			//var tD6 = $("<td>").text(minutesAway); // minutes away
+			var tD3 = $("<td>").text(nextTrainFormatted); //Next train arrival
+			var tD6 = $("<td>").text(minutesAway); // minutes away
 
-			$(tRow).append(tD1, tD2, tD3, tD4) //tD5, tD6)
+			$(tRow).append(tD1, tD2, tD3, tD4, tD6)
 			$("#train-table-body").append(tRow);
 		
 
@@ -69,7 +75,15 @@
 
 	});
 
+function findNextArrival(time) {
+	var nextArrival = moment().add(minutesAway, "minutes");
+	
+	return nextArrival;
+}
 
+function findminutesAway(frequency, nextArrival) {
+	return frequency - timeDifference;
+}
 
 $("#submit-train").click(function(event) {
 	event.preventDefault();
